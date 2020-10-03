@@ -92,7 +92,7 @@ jobs:
           git clone https://github.com/graalvm/mx
       
       - name: Run a multi-line script
-        id: Start Build
+        id: start-build
         run: |
           export JAVA_HOME=$PWD/labsjdk-ce-15-jvmci-20.3-b01
           export PATH=$JAVA_HOME/bin:$PATH
