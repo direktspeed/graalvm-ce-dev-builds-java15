@@ -60,14 +60,14 @@ jobs:
       - name: Get last GraalJS Commit
         id: graaljs-commit
         run: echo "::set-output name=commit::$(curl --silent https://api.github.com/repos/graalvm/graaljs/commits/master | jq .sha -)" 
-      - name: Cache git clone oracle/graal
+      - name: Cache git clone graalvm/graaljs
         id: cache-git-clone-graaljs
         uses: actions/cache@v2.1.1
         with:
           # A list of files, directories, and wildcard patterns to cache and restore
           path: graaljs
           key: graaljs-${{ steps.graaljs-commit.outputs.commit }}
-      - name: Clone Graal if needed
+      - name: Clone GraalJS if needed
         if: steps.cache-git-clone-graaljs.outputs.cache-hit != 'true'
         id: git-clone-graaljs
         run: |
@@ -77,30 +77,62 @@ jobs:
       - name: Get last GraalVM MX Commit
         id: mx-commit
         run: echo "::set-output name=commit::$(curl --silent https://api.github.com/repos/graalvm/mx/commits/master | jq .sha -)"
-      
       - name: Cache git clone graalvm/mx
         id: cache-git-clone-mx
         uses: actions/cache@v2.1.1
         with:
           path: mx
           key: mx-${{ steps.mx-commit.outputs.commit }}
-
-      - name: Clone mx if needed
+      - name: Clone graalvm/mx if needed
         if: steps.cache-git-clone-mx.outputs.cache-hit != 'true'
         id: git-clone-mx
         run: |
           git clone https://github.com/graalvm/mx
-      
+
+      ## Git Clone graalpython if needed
+      - name: Get last graalpython Commit
+        id: graalpython-commit
+        run: echo "::set-output name=commit::$(curl --silent https://api.github.com/repos/graalvm/graalpython/commits/master | jq .sha -)"
+      - name: Cache git clone graalvm/graalpython
+        id: cache-git-clone-graalpython
+        uses: actions/cache@v2.1.1
+        with:
+          path: graalpython
+          key: graalpython-${{ steps.graalpython-commit.outputs.commit }}
+      - name: Clone graalvm/mx if needed
+        if: steps.cache-git-clone-graalpython.outputs.cache-hit != 'true'
+        id: git-clone-graalpython
+        run: |
+          git clone https://github.com/graalvm/graalpython
+
+      ## Git Clone oracle/truffleruby if needed
+      - name: Get last oracle/truffleruby Commit
+        id: truffleruby-commit
+        run: echo "::set-output name=commit::$(curl --silent https://api.github.com/repos/oracle/truffleruby/commits/master | jq .sha -)"
+      - name: Cache git clone oracle/truffleruby
+        id: cache-git-clone-truffleruby
+        uses: actions/cache@v2.1.1
+        with:
+          path: truffleruby
+          key: truffleruby-${{ steps.truffleruby-commit.outputs.commit }}
+      - name: Clone oracle/truffleruby if needed
+        if: steps.cache-git-clone-truffleruby.outputs.cache-hit != 'true'
+        id: git-clone-truffleruby
+        run: |
+          git clone https://github.com/oracle/truffleruby
+
       - name: Run a multi-line script
         id: start-build
         run: |
+          # https://github.com/oracle/truffleruby.git 
+          # https://github.com/graalvm/graalpython.git 
           export JAVA_HOME=$PWD/labsjdk-ce-15-jvmci-20.3-b01
           export PATH=$JAVA_HOME/bin:$PATH
           echo $JAVA_HOME 
           export PATH=$PWD/mx:$PATH
           cd graal/vm
-          mx --env ce-complete graalvm-show
-          ##mx --env ce-complete build
+          #mx --env ce-complete graalvm-show
+          mx --env ce-complete build
           #echo $GRAALVM_COMMIT$GRAALJS_COMMIT
           echo "::set-output name=commit::$GRAALVM_COMMIT$GRAALJS_COMMIT"
           
