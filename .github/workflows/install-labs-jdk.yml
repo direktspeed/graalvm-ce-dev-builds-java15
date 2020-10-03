@@ -21,7 +21,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      - name: Cache
+      - name: Cache labsjdk download
         id: download
         uses: actions/cache@v2.1.1
         with:
@@ -37,16 +37,68 @@ jobs:
           wget https://github.com/graalvm/labs-openjdk-15/releases/download/jvmci-20.3-b01/labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64.tar.gz
           tar -xf labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64.tar.gz
       ## Add Cache here with git commit of mx 
-      ## Add Cache here with git commit of graal ${{ steps.get-date.outputs.date }}
-      - name: Run a multi-line script
-        id: gitclone
+      ## Add Cache here with git commit of graal ${{ steps.graal-commit.outputs.commit }}
+
+      ## Clone Graal if needed
+      - name: Get last Graal Commit
+        id: graal-commit
+        run: echo "::set-output name=commit::$(curl --silent https://api.github.com/repos/oracle/graal/commits/master | jq .sha -)" 
+      - name: Cache git clone oracle/graal
+        id: cache-git-clone-graal
+        uses: actions/cache@v2.1.1
+        with:
+          # A list of files, directories, and wildcard patterns to cache and restore
+          path: graal
+          key: graal-${{ steps.graal-commit.outputs.commit }}
+      - name: Clone Graal if needed
+        if: steps.cache-git-clone-graal.outputs.cache-hit != 'true'
+        id: git-clone-graal
         run: |
-          sudo apt-get install jq -y
-          #export JAVA_HOME=$PWD/labsjdk-ce-15-jvmci-20.3-b01
-          #export PATH=$JAVA_HOME/bin:$PATH
-          #echo $JAVA_HOME 
-          #echo $PATH
-          #git clone https://github.com/oracle/graal
+          git clone https://github.com/oracle/graal      
+      
+      ## Git Clone GraalJS if needed
+      - name: Get last GraalJS Commit
+        id: graaljs-commit
+        run: echo "::set-output name=commit::$(curl --silent https://api.github.com/repos/graalvm/graaljs/commits/master | jq .sha -)" 
+      - name: Cache git clone oracle/graal
+        id: cache-git-clone-graaljs
+        uses: actions/cache@v2.1.1
+        with:
+          # A list of files, directories, and wildcard patterns to cache and restore
+          path: graaljs
+          key: graaljs-${{ steps.graaljs-commit.outputs.commit }}
+      - name: Clone Graal if needed
+        if: steps.cache-git-clone-graaljs.outputs.cache-hit != 'true'
+        id: git-clone-graaljs
+        run: |
+          git clone https://github.com/graalvm/graaljs
+          
+      ## Git Clone MX if needed
+      - name: Get last GraalVM MX Commit
+        id: mx-commit
+        run: echo "::set-output name=commit::$(curl --silent https://api.github.com/repos/graalvm/mx/commits/master | jq .sha -)"
+      
+      - name: Cache git clone graalvm/mx
+        id: cache-git-clone-mx
+        uses: actions/cache@v2.1.1
+        with:
+          path: mx
+          key: mx-${{ steps.mx-commit.outputs.commit }}
+
+      - name: Clone mx if needed
+        if: steps.cache-git-clone-mx.outputs.cache-hit != 'true'
+        id: git-clone-mx
+        run: |
+          git clone https://github.com/graalvm/mx
+      
+      - name: Run a multi-line script
+        id: Start Build
+        run: |
+          export JAVA_HOME=$PWD/labsjdk-ce-15-jvmci-20.3-b01
+          export PATH=$JAVA_HOME/bin:$PATH
+          echo $JAVA_HOME 
+          echo $PATH
+          
           #git clone https://github.com/graalvm/mx
           #export PATH=$PWD/mx:$PATH
           #git clone https://github.com/graalvm/graaljs
@@ -54,8 +106,8 @@ jobs:
           #export GRAALVM_COMMIT="$(git rev-parse --short HEAD)
           #cd ../graaljs
           #export GRAALJS_COMMIT="$(git rev-parse --short HEAD)
-          #cd ../graal/vm
-          #mx --env ce-complete graalvm-show
+          cd graal/vm
+          mx --env ce-complete graalvm-show
           ##mx --env ce-complete build
           #echo $GRAALVM_COMMIT$GRAALJS_COMMIT
           echo "::set-output name=commit::$GRAALVM_COMMIT$GRAALJS_COMMIT"
