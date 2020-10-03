@@ -124,8 +124,14 @@ jobs:
         id: cache-graal
         uses: actions/cache@v2.1.1
         with:
-          path: graal
-          key: graal
+          path: |
+            graal
+            graaljs
+            graalpython
+            labsjdk-ce-15-jvmci-20.3-b01
+            mx
+            truffleruby
+          key: graal1
       - name: Run a multi-line script
         if: steps.cache-graal.outputs.cache-hit != 'true'
         id: start-build
@@ -136,10 +142,11 @@ jobs:
           echo $JAVA_HOME 
           export PATH=$PWD/mx:$PATH
           ls
+          find . -iname mxbuild
           cd graal/vm
           #mx --env ce-complete graalvm-show
           mx --env ce sforceimports
-          mx --env ce-no_native sforceimports
+          mx --env ce-no_native sforceimports          
           #mx --env ce-no_native build
           
           
