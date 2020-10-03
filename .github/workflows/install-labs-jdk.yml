@@ -146,7 +146,8 @@ jobs:
           cd graal/vm
           #mx --env ce-complete graalvm-show
           mx --env ce sforceimports
-          mx --env ce-no_native sforceimports          
+          mx --env ce-no_native sforceimports
+          cd ../..        
           #mx --env ce-no_native build
       - name: Cache build-ce
         id: cache-build-ce
@@ -164,6 +165,12 @@ jobs:
         if: steps.cache-build-ce.outputs.cache-hit != 'true'
         id: start-build-ce
         run: |
+          export JAVA_HOME=$PWD/labsjdk-ce-15-jvmci-20.3-b01
+          export PATH=$JAVA_HOME/bin:$PATH
+          echo $JAVA_HOME 
+          export PATH=$PWD/mx:$PATH
+          cd graal/vm
+          mx --env ce sforceimports
           mx --env ce build
           find .. -iname mxbuild
           
