@@ -36,12 +36,22 @@ jobs:
         run: |
           wget https://github.com/graalvm/labs-openjdk-15/releases/download/jvmci-20.3-b01/labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64.tar.gz
           tar -xf labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64.tar.gz
+      ## Add Cache here with git commit of mx 
+      ## Add Cache here with git commit of graal 
       - name: Run a multi-line script
         run: |
-          ls labsjdk-ce-15-jvmci-20.3-b01
-          cd labsjdk-ce-15-jvmci-20.3-b01
-          pwd
           export JAVA_HOME=$PWD/labsjdk-ce-15-jvmci-20.3-b01
           export PATH=$JAVA_HOME/bin:$PATH
           echo $JAVA_HOME 
           echo $PATH
+          git clone https://github.com/oracle/graal
+          git clone https://github.com/graalvm/mx
+          export PATH=$PWD/mx:$PATH
+          cd graal
+          git clone https://github.com/graalvm/graaljs
+          git rev-parse --short HEAD
+          cd vm
+          
+          
+          
+          
