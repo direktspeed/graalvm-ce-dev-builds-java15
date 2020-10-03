@@ -148,6 +148,24 @@ jobs:
           mx --env ce sforceimports
           mx --env ce-no_native sforceimports          
           #mx --env ce-no_native build
+      - name: Cache build-ce
+        id: cache-build-ce
+        uses: actions/cache@v2.1.1
+        with:
+          path: |
+            graal
+            graaljs
+            graalpython
+            labsjdk-ce-15-jvmci-20.3-b01
+            mx
+            truffleruby
+          key: cache-build-ce
+      - name: Run real build ce
+        if: steps.cache-build-ce.outputs.cache-hit != 'true'
+        id: start-build-ce
+        run: |
+          mx --env ce build
+          find .. -iname mxbuild
           
           
           
