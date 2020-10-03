@@ -27,6 +27,6 @@ jobs:
         run: |
           wget https://github.com/graalvm/labs-openjdk-15/releases/download/jvmci-20.3-b01/labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64.tar.gz
           tar -xf labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64.tar.gz
-          ls labsjdk-ce-15+36-jvmci-20.3-b01
-          cd labsjdk-ce-15+36-jvmci-20.3-b01
+          ls labsjdk-ce-15-jvmci-20.3-b01
+          cd labsjdk-ce-15-jvmci-20.3-b01
           pwd
