@@ -132,7 +132,7 @@ jobs:
           export PATH=$PWD/mx:$PATH
           cd graal/vm
           #mx --env ce-complete graalvm-show
-          mx --env ce-complete build
+          mx --env ce-no_native build
           #echo $GRAALVM_COMMIT$GRAALJS_COMMIT
           echo "::set-output name=commit::$GRAALVM_COMMIT$GRAALJS_COMMIT"
           
