@@ -97,15 +97,7 @@ jobs:
           export JAVA_HOME=$PWD/labsjdk-ce-15-jvmci-20.3-b01
           export PATH=$JAVA_HOME/bin:$PATH
           echo $JAVA_HOME 
-          echo $PATH
-          
-          #git clone https://github.com/graalvm/mx
-          #export PATH=$PWD/mx:$PATH
-          #git clone https://github.com/graalvm/graaljs
-          #cd graal
-          #export GRAALVM_COMMIT="$(git rev-parse --short HEAD)
-          #cd ../graaljs
-          #export GRAALJS_COMMIT="$(git rev-parse --short HEAD)
+          export PATH=$PWD/mx:$PATH
           cd graal/vm
           mx --env ce-complete graalvm-show
           ##mx --env ce-complete build
