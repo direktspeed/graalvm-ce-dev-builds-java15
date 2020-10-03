@@ -99,7 +99,7 @@ jobs:
         with:
           path: graalpython
           key: graalpython-${{ steps.graalpython-commit.outputs.commit }}
-      - name: Clone graalvm/mx if needed
+      - name: Clone graalvm/graalpython if needed
         if: steps.cache-git-clone-graalpython.outputs.cache-hit != 'true'
         id: git-clone-graalpython
         run: |
@@ -120,21 +120,30 @@ jobs:
         id: git-clone-truffleruby
         run: |
           git clone https://github.com/oracle/truffleruby
-
+      - name: Cache graal build
+        id: cache-graal
+        uses: actions/cache@v2.1.1
+        with:
+          path: graal
+          key: graal
       - name: Run a multi-line script
+        if: steps.cache-graal.outputs.cache-hit != 'true'
         id: start-build
         run: |
-          # https://github.com/oracle/truffleruby.git 
-          # https://github.com/graalvm/graalpython.git 
+          # LLVM needs cache 
           export JAVA_HOME=$PWD/labsjdk-ce-15-jvmci-20.3-b01
           export PATH=$JAVA_HOME/bin:$PATH
           echo $JAVA_HOME 
           export PATH=$PWD/mx:$PATH
+          ls
           cd graal/vm
           #mx --env ce-complete graalvm-show
-          mx --env ce-no_native build
-          #echo $GRAALVM_COMMIT$GRAALJS_COMMIT
-          echo "::set-output name=commit::$GRAALVM_COMMIT$GRAALJS_COMMIT"
+          mx --env ce sforceimports
+          mx --env ce-no_native sforceimports
+          #mx --env ce-no_native build
+          
+          
+          
           
           
           
