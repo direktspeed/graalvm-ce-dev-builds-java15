@@ -37,26 +37,28 @@ jobs:
           wget https://github.com/graalvm/labs-openjdk-15/releases/download/jvmci-20.3-b01/labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64.tar.gz
           tar -xf labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64.tar.gz
       ## Add Cache here with git commit of mx 
-      ## Add Cache here with git commit of graal 
+      ## Add Cache here with git commit of graal ${{ steps.get-date.outputs.date }}
       - name: Run a multi-line script
+        id: gitclone
         run: |
-          export JAVA_HOME=$PWD/labsjdk-ce-15-jvmci-20.3-b01
-          export PATH=$JAVA_HOME/bin:$PATH
-          echo $JAVA_HOME 
-          echo $PATH
-          git clone https://github.com/oracle/graal
-          git clone https://github.com/graalvm/mx
-          export PATH=$PWD/mx:$PATH
-          cd graal
-          git clone https://github.com/graalvm/graaljs
-          export GRAALVM_COMMIT="$(git rev-parse --short HEAD)
-          cd graaljs
-          export GRAALJS_COMMIT="$(git rev-parse --short HEAD)
-          cd vm
-          mx --env ce-complete graalvm-show
-          #mx --env ce-complete build
-          echo $GRAALVM_COMMIT $GRAALJS_COMMIT
-          
+          sudo apt-install jq -y
+          #export JAVA_HOME=$PWD/labsjdk-ce-15-jvmci-20.3-b01
+          #export PATH=$JAVA_HOME/bin:$PATH
+          #echo $JAVA_HOME 
+          #echo $PATH
+          #git clone https://github.com/oracle/graal
+          #git clone https://github.com/graalvm/mx
+          #export PATH=$PWD/mx:$PATH
+          #git clone https://github.com/graalvm/graaljs
+          #cd graal
+          #export GRAALVM_COMMIT="$(git rev-parse --short HEAD)
+          #cd ../graaljs
+          #export GRAALJS_COMMIT="$(git rev-parse --short HEAD)
+          #cd ../graal/vm
+          #mx --env ce-complete graalvm-show
+          ##mx --env ce-complete build
+          #echo $GRAALVM_COMMIT$GRAALJS_COMMIT
+          echo "::set-output name=commit::$GRAALVM_COMMIT$GRAALJS_COMMIT"
           
           
           
