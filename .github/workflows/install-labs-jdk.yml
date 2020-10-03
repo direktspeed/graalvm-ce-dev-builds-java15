@@ -41,7 +41,7 @@ jobs:
       - name: Run a multi-line script
         id: gitclone
         run: |
-          sudo apt-install jq -y
+          sudo apt-get install jq -y
           #export JAVA_HOME=$PWD/labsjdk-ce-15-jvmci-20.3-b01
           #export PATH=$JAVA_HOME/bin:$PATH
           #echo $JAVA_HOME 
