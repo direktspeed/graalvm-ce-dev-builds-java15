@@ -49,8 +49,13 @@ jobs:
           export PATH=$PWD/mx:$PATH
           cd graal
           git clone https://github.com/graalvm/graaljs
-          git rev-parse --short HEAD
+          export GRAALVM_COMMIT="(git rev-parse --short HEAD)
+          cd graaljs
+          export GRAALJS_COMMIT="(git rev-parse --short HEAD)
           cd vm
+          mx --env ce-complete graalvm-show
+          #mx --env ce-complete build
+          echo $GRAALVM_COMMIT $GRAALJS_COMMIT
           
           
           
