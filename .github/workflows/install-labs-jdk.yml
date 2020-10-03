@@ -26,6 +26,7 @@ jobs:
       - name: Run a multi-line script
         run: |
           wget https://github.com/graalvm/labs-openjdk-15/releases/download/jvmci-20.3-b01/labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64.tar.gz
-          tar -xfz labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64.tar.gz
-          ls labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64
-          echo test, and deploy your project.
+          tar -xf labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64.tar.gz
+          ls labsjdk-ce-15+36-jvmci-20.3-b01
+          cd labsjdk-ce-15+36-jvmci-20.3-b01
+          pwd
