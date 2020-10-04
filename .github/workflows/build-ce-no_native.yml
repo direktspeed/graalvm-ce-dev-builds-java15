@@ -1,0 +1,179 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI-ce-no_native
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the main branch
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache https://github.com/graalvm/labs-openjdk-15/releases/download/jvmci-20.3-b01/labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64.tar.gz
+        id: openjdk-15-download
+        uses: actions/cache@v2.1.1
+        with:
+          path: labsjdk-ce-15-jvmci-20.3-b01
+          key: labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64
+      - name: Download https://github.com/graalvm/labs-openjdk-15/releases/download/jvmci-20.3-b01/labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64.tar.gz
+        if: steps.openjdk-15-download.outputs.cache-hit != 'true'
+        run: |
+          wget https://github.com/graalvm/labs-openjdk-15/releases/download/jvmci-20.3-b01/labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64.tar.gz
+          tar -xf labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64.tar.gz
+
+      ## Clone Graal if needed
+      - name: Get https://github.com/oracle/graal/ Commit
+        id: graal-commit
+        run: echo "::set-output name=commit::$(curl --silent https://api.github.com/repos/oracle/graal/commits/master | jq .sha -)" 
+      - name: Cache git clone oracle/graal
+        id: cache-git-clone-graal
+        uses: actions/cache@v2.1.1
+        with:
+          # A list of files, directories, and wildcard patterns to cache and restore
+          path: graal
+          key: graal-${{ steps.graal-commit.outputs.commit }}
+      - name: Clone Graal if needed
+        if: steps.cache-git-clone-graal.outputs.cache-hit != 'true'
+        id: git-clone-graal
+        run: |
+          git clone https://github.com/oracle/graal      
+      
+      ## Git Clone GraalJS if needed
+      - name: Get https://github.com/graalvm/graaljs Commit
+        id: graaljs-commit
+        run: echo "::set-output name=commit::$(curl --silent https://api.github.com/repos/graalvm/graaljs/commits/master | jq .sha -)" 
+      - name: Cache git clone graalvm/graaljs
+        id: cache-git-clone-graaljs
+        uses: actions/cache@v2.1.1
+        with:
+          # A list of files, directories, and wildcard patterns to cache and restore
+          path: graaljs
+          key: graaljs-${{ steps.graaljs-commit.outputs.commit }}
+      - name: Clone GraalJS if needed
+        if: steps.cache-git-clone-graaljs.outputs.cache-hit != 'true'
+        id: git-clone-graaljs
+        run: |
+          git clone https://github.com/graalvm/graaljs
+          
+      ## Git Clone MX if needed
+      - name: Get https://github.com/graalvm/mx Commit
+        id: mx-commit
+        run: echo "::set-output name=commit::$(curl --silent https://api.github.com/repos/graalvm/mx/commits/master | jq .sha -)"
+      - name: Cache git clone graalvm/mx
+        id: cache-git-clone-mx
+        uses: actions/cache@v2.1.1
+        with:
+          path: mx
+          key: mx-${{ steps.mx-commit.outputs.commit }}
+      - name: Clone graalvm/mx if needed
+        if: steps.cache-git-clone-mx.outputs.cache-hit != 'true'
+        id: git-clone-mx
+        run: |
+          git clone https://github.com/graalvm/mx
+
+      ## Git Clone https://github.com/graalvm/graalpython if needed
+      - name: Get https://github.com/graalvm/graalpython Commit
+        id: graalpython-commit
+        run: echo "::set-output name=commit::$(curl --silent https://api.github.com/repos/graalvm/graalpython/commits/master | jq .sha -)"
+      - name: Cache git clone https://github.com/graalvm/graalpython
+        id: cache-git-clone-graalpython
+        uses: actions/cache@v2.1.1
+        with:
+          path: graalpython
+          key: graalpython-${{ steps.graalpython-commit.outputs.commit }}
+      - name: Clone graalvm/graalpython if needed
+        if: steps.cache-git-clone-graalpython.outputs.cache-hit != 'true'
+        id: git-clone-graalpython
+        run: |
+          git clone https://github.com/graalvm/graalpython
+      
+      ## Git Clone https://github.com/oracle/truffleruby if needed
+      - name: Get https://github.com/oracle/truffleruby Commit
+        id: truffleruby-commit
+        run: echo "::set-output name=commit::$(curl --silent https://api.github.com/repos/oracle/truffleruby/commits/master | jq .sha -)"
+      - name: Cache git clone https://github.com/oracle/truffleruby
+        id: cache-git-clone-truffleruby
+        uses: actions/cache@v2.1.1
+        with:
+          path: truffleruby
+          key: truffleruby-${{ steps.truffleruby-commit.outputs.commit }}
+      - name: Clone oracle/truffleruby if needed
+        if: steps.cache-git-clone-truffleruby.outputs.cache-hit != 'true'
+        id: git-clone-truffleruby
+        run: |
+          git clone https://github.com/oracle/truffleruby
+      
+      - name: Cache build-ce-no_native
+        id: cache-build-ce-no_native
+        uses: actions/cache@v2.1.1
+        with:
+          path: |
+            mx/mxbuild
+            graaljs/graal-nodejs/mxbuild
+            graaljs/graal-js/mxbuild
+            graal/sdk/mxbuild
+            graal/vm/mxbuild
+            graal/compiler/mxbuild
+            graal/substratevm/mxbuild
+            graal/regex/mxbuild
+            graal/tools/mxbuild
+            graal/truffle/mxbuild
+            graal/sulong/mxbuild
+          key: cache-build-ce-no_native
+      - name: Run real build ce-no_native
+        if: steps.cache-build-ce-no_native.outputs.cache-hit != 'true'
+        id: start-build-ce
+        run: |
+          export JAVA_HOME=$PWD/labsjdk-ce-15-jvmci-20.3-b01
+          export PATH=$JAVA_HOME/bin:$PATH
+          echo $JAVA_HOME 
+          export PATH=$PWD/mx:$PATH
+          cd graal/vm
+          mx --env ce-no_native sforceimports
+          mx --env ce-no_native build
+          cd ..
+          cd ..
+      #- name: Archive production artifacts
+      #  uses: actions/upload-artifact@v2
+      #  with:
+      #    name: dist-without-markdown
+      #    path: |
+      #      mx/mxbuild
+      #      graaljs/graal-nodejs/mxbuild
+      #      graaljs/graal-js/mxbuild
+      #      graal/sdk/mxbuild
+      #      graal/vm/mxbuild
+      #      graal/compiler/mxbuild
+      #      graal/substratevm/mxbuild
+      #      graal/regex/mxbuild
+      #      graal/tools/mxbuild
+      #      graal/truffle/mxbuild
+      #      graal/sulong/mxbuild
+      - name: list ce-no_native artifacts
+        id: build-ce-no_native-find-artifacts
+        run: |
+          find mx/mxbuild > release
+          find graaljs/graal-nodejs/mxbuild >> release
+          find graaljs/graal-js/mxbuild >> release
+          find graal/sdk/mxbuild >> release
+          find graal/vm/mxbuild >> release
+          find graal/compiler/mxbuild >> release
+          find graal/substratevm/mxbuild >> release
+          find graal/regex/mxbuild >> release
+          find graal/tools/mxbuild >> release
+          find graal/truffle/mxbuild >> release
+          find graal/sulong/mxbuild >> release
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist-file-list
+          path: |
+            release
