@@ -1,7 +1,4 @@
-# This is a basic workflow to help you get started with Actions
-
-name: CI
-
+name: CI-release-graalvm-ce-java15-linux-amd64-20.3.0-dev
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the main branch
 on:
@@ -106,48 +103,21 @@ jobs:
           git clone https://github.com/graalvm/graalpython
 
       ## Git Clone oracle/truffleruby if needed
-      - name: Get last oracle/truffleruby Commit
+      - name: Get last https://github.com/oracle/truffleruby Commit
         id: truffleruby-commit
         run: echo "::set-output name=commit::$(curl --silent https://api.github.com/repos/oracle/truffleruby/commits/master | jq .sha -)"
-      - name: Cache git clone oracle/truffleruby
+      - name: Cache: git clone https://github.com/oracle/truffleruby
         id: cache-git-clone-truffleruby
         uses: actions/cache@v2.1.1
         with:
           path: truffleruby
           key: truffleruby-${{ steps.truffleruby-commit.outputs.commit }}
-      - name: Clone oracle/truffleruby if needed
+      - name: Run: git clone https://github.com/oracle/truffleruby
         if: steps.cache-git-clone-truffleruby.outputs.cache-hit != 'true'
         id: git-clone-truffleruby
         run: |
           git clone https://github.com/oracle/truffleruby
-      #- name: Cache graal build
-      #  id: cache-graal
-      #  uses: actions/cache@v2.1.1
-      #  with:
-      #    path: |
-      #      graal
-      #      graaljs
-      #      graalpython
-      #      labsjdk-ce-15-jvmci-20.3-b01
-      #      mx
-      #      truffleruby
-      #    key: graal1
-      - name: Run a multi-line script
-        if: steps.cache-graal.outputs.cache-hit != 'true'
-        id: start-build
-        run: |
-          # LLVM needs cache 
-          export JAVA_HOME=$PWD/labsjdk-ce-15-jvmci-20.3-b01
-          export PATH=$JAVA_HOME/bin:$PATH
-          echo $JAVA_HOME 
-          export PATH=$PWD/mx:$PATH
-          ls
-          find . -iname mxbuild
-          cd graal/vm
-          #mx --env ce-complete graalvm-show
-          mx --env ce sforceimports
-          cd ../..
-      - name: Cache build-ce
+      - name: Cache: mx --env ce build
         id: cache-build-ce
         uses: actions/cache@v2.1.1
         with:
@@ -164,7 +134,7 @@ jobs:
             graal/truffle/mxbuild
             graal/sulong/mxbuild
           key: cache-build-ce
-      - name: Run real build ce
+      - name: Run: mx --env ce build
         if: steps.cache-build-ce.outputs.cache-hit != 'true'
         id: start-build-ce
         run: |
@@ -175,23 +145,6 @@ jobs:
           cd graal/vm
           mx --env ce sforceimports
           mx --env ce build
-      - name: Archive production artifacts
-        if: steps.cache-build-ce.outputs.cache-hit != 'true'
-        uses: actions/upload-artifact@v2
-        with:
-          name: dist-without-markdown
-          path: |
-            mx/mxbuild
-            graaljs/graal-nodejs/mxbuild
-            graaljs/graal-js/mxbuild
-            graal/sdk/mxbuild
-            graal/vm/mxbuild
-            graal/compiler/mxbuild
-            graal/substratevm/mxbuild
-            graal/regex/mxbuild
-            graal/tools/mxbuild
-            graal/truffle/mxbuild
-            graal/sulong/mxbuild
       - name: list ce artifacts
         id: build-ce-find-artifacts
         run: |
@@ -208,7 +161,7 @@ jobs:
           find graal/sulong/mxbuild >> release
           export WORKING_DIR=$PWD
           cd graal/sdk/mxbuild/linux-amd64/GRAALVM_CE_JAVA15/
-          tar cvf - graalvm-ce-java15-20.3.0-dev | gzip -9 - > $WORKING_DIR/graalvm-ce-java15-20.3.0-dev-amd64.tgz
+          tar cvf - graalvm-ce-java15-20.3.0-dev | gzip -9 - > $WORKING_DIR/graalvm-ce-java15-linux-amd64-20.3.0-dev.tar.gz
           cd $WORKING_DIR
       - name: Archive production artifacts
         uses: actions/upload-artifact@v2
@@ -216,23 +169,23 @@ jobs:
           name: dist-file-list
           path: |
             release
-      - name: Create Release
+      - name: Create graalvm-ce-java15-linux-amd64-20.3.0-dev - ${{ steps.graal-commit.outputs.commit }} Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release graalvm-ce-java15-20.3.0-dev-amd64 - ${{ github.ref }}
+          tag_name: vm-20.3.0-dev-jvmci-20.3-b01
+          release_name: Release graalvm-ce-java15-linux-amd64-20.3.0-dev - ${{ steps.graal-commit.outputs.commit }}
           draft: true
           prerelease: true
-      - name: Upload Release Asset
+      - name: Upload graalvm-ce-java15-linux-amd64-20.3.0-dev - ${{ steps.graal-commit.outputs.commit }}
         id: upload-release-asset 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./graalvm-ce-java15-20.3.0-dev-amd64.tgz
-          asset_name: graalvm-ce-java15-20.3.0-dev-amd64.tgz
+          asset_path: ./graalvm-ce-java15-linux-amd64-20.3.0-dev.tar.gz
+          asset_name: graalvm-ce-java15-linux-amd64-20.3.0-dev.tar.gz
           asset_content_type: application/gzip
