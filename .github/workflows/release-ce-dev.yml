@@ -106,18 +106,18 @@ jobs:
       - name: Get last https://github.com/oracle/truffleruby Commit
         id: truffleruby-commit
         run: echo "::set-output name=commit::$(curl --silent https://api.github.com/repos/oracle/truffleruby/commits/master | jq .sha -)"
-      - name: Cache: git clone https://github.com/oracle/truffleruby
+      - name: "Cache: git clone https://github.com/oracle/truffleruby"
         id: cache-git-clone-truffleruby
         uses: actions/cache@v2.1.1
         with:
           path: truffleruby
           key: truffleruby-${{ steps.truffleruby-commit.outputs.commit }}
-      - name: Run: git clone https://github.com/oracle/truffleruby
+      - name: "Run: git clone https://github.com/oracle/truffleruby"
         if: steps.cache-git-clone-truffleruby.outputs.cache-hit != 'true'
         id: git-clone-truffleruby
         run: |
           git clone https://github.com/oracle/truffleruby
-      - name: Cache: mx --env ce build
+      - name: "Cache: mx --env ce build"
         id: cache-build-ce
         uses: actions/cache@v2.1.1
         with:
@@ -134,7 +134,7 @@ jobs:
             graal/truffle/mxbuild
             graal/sulong/mxbuild
           key: cache-build-ce
-      - name: Run: mx --env ce build
+      - name: "Run: mx --env ce build"
         if: steps.cache-build-ce.outputs.cache-hit != 'true'
         id: start-build-ce
         run: |
@@ -145,7 +145,7 @@ jobs:
           cd graal/vm
           mx --env ce sforceimports
           mx --env ce build
-      - name: list ce artifacts
+      - name: List all files from mxbuilds/* > release artifact
         id: build-ce-find-artifacts
         run: |
           find mx/mxbuild > release
@@ -163,7 +163,7 @@ jobs:
           cd graal/sdk/mxbuild/linux-amd64/GRAALVM_CE_JAVA15/
           tar cvf - graalvm-ce-java15-20.3.0-dev | gzip -9 - > $WORKING_DIR/graalvm-ce-java15-linux-amd64-20.3.0-dev.tar.gz
           cd $WORKING_DIR
-      - name: Archive production artifacts
+      - name: Archive production artifact release
         uses: actions/upload-artifact@v2
         with:
           name: dist-file-list
