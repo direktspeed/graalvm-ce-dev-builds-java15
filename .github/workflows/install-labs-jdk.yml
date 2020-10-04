@@ -120,18 +120,18 @@ jobs:
         id: git-clone-truffleruby
         run: |
           git clone https://github.com/oracle/truffleruby
-      - name: Cache graal build
-        id: cache-graal
-        uses: actions/cache@v2.1.1
-        with:
-          path: |
-            graal
-            graaljs
-            graalpython
-            labsjdk-ce-15-jvmci-20.3-b01
-            mx
-            truffleruby
-          key: graal1
+      #- name: Cache graal build
+      #  id: cache-graal
+      #  uses: actions/cache@v2.1.1
+      #  with:
+      #    path: |
+      #      graal
+      #      graaljs
+      #      graalpython
+      #      labsjdk-ce-15-jvmci-20.3-b01
+      #      mx
+      #      truffleruby
+      #    key: graal1
       - name: Run a multi-line script
         if: steps.cache-graal.outputs.cache-hit != 'true'
         id: start-build
@@ -172,6 +172,22 @@ jobs:
           cd graal/vm
           mx --env ce sforceimports
           mx --env ce build
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist-without-markdown
+          path: |
+            mx/mxbuild
+            graaljs/graal-nodejs/mxbuild
+            graaljs/graal-js/mxbuild
+            graal/sdk/mxbuild
+            graal/vm/mxbuild
+            graal/compiler/mxbuild
+            graal/substratevm/mxbuild
+            graal/regex/mxbuild
+            graal/tools/mxbuild
+            graal/truffle/mxbuild
+            graal/sulong/mxbuild
       - name: build ce artifacts
         id: build-ce-find-artifacts
         run: |
