@@ -146,20 +146,23 @@ jobs:
           cd graal/vm
           #mx --env ce-complete graalvm-show
           mx --env ce sforceimports
-          mx --env ce-no_native sforceimports
-          cd ../..        
-          #mx --env ce-no_native build
+          cd ../..
       - name: Cache build-ce
         id: cache-build-ce
         uses: actions/cache@v2.1.1
         with:
           path: |
-            graal
-            graaljs
-            graalpython
-            labsjdk-ce-15-jvmci-20.3-b01
-            mx
-            truffleruby
+            mx/mxbuild
+            graaljs/graal-nodejs/mxbuild
+            graaljs/graal-js/mxbuild
+            graal/sdk/mxbuild
+            graal/vm/mxbuild
+            graal/compiler/mxbuild
+            graal/substratevm/mxbuild
+            graal/regex/mxbuild
+            graal/tools/mxbuild
+            graal/truffle/mxbuild
+            graal/sulong/mxbuild
           key: cache-build-ce
       - name: Run real build ce
         if: steps.cache-build-ce.outputs.cache-hit != 'true'
@@ -232,9 +235,4 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
           asset_path: ./graalvm-ce-java15-20.3.0-dev-amd64.tgz
           asset_name: graalvm-ce-java15-20.3.0-dev-amd64.tgz
-          asset_content_type: application/gzip      
-          
-          
-          
-          
-          
+          asset_content_type: application/gzip
