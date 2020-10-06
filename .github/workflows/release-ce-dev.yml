@@ -33,7 +33,7 @@ jobs:
       
       ## Clone Graal if needed
       - name: Get last Graal Commit
-        id: graal-commit
+        id: graal-commit-remote
         run: echo "::set-output name=commit::$(curl --silent https://api.github.com/repos/oracle/graal/commits/master | jq .sha -)" 
       - name: Cache git clone oracle/graal
         id: cache-git-clone-graal
@@ -41,7 +41,7 @@ jobs:
         with:
           # A list of files, directories, and wildcard patterns to cache and restore
           path: graal
-          key: graal-${{ steps.graal-commit.outputs.commit }}
+          key: graal-${{ steps.graal-commit-remote.outputs.commit }}
       - name: Clone Graal if needed
         if: steps.cache-git-clone-graal.outputs.cache-hit != 'true'
         id: git-clone-graal
