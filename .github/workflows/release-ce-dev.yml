@@ -15,7 +15,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      - name: Cache labsjdk download
+      - name: Cache labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64 download
         id: download
         uses: actions/cache@v2.1.1
         with:
@@ -30,7 +30,7 @@ jobs:
         run: |
           wget https://github.com/graalvm/labs-openjdk-15/releases/download/jvmci-20.3-b01/labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64.tar.gz
           tar -xf labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64.tar.gz
-
+      
       ## Clone Graal if needed
       - name: Get last Graal Commit
         id: graal-commit
@@ -47,6 +47,12 @@ jobs:
         id: git-clone-graal
         run: |
           git clone https://github.com/oracle/graal      
+      - name: Get Graal short Commit id
+        id: graal-commit
+        run: |
+          cd graal
+          echo "::set-output name=tag::$(git rev-parse --short HEAD)" 
+          cd ..
       
       ## Git Clone GraalJS if needed
       - name: Get last GraalJS Commit
@@ -80,7 +86,6 @@ jobs:
         id: git-clone-mx
         run: |
           git clone https://github.com/graalvm/mx
-
       ## Git Clone graalpython if needed
       - name: Get last graalpython Commit
         id: graalpython-commit
@@ -91,12 +96,11 @@ jobs:
         with:
           path: graalpython
           key: graalpython-${{ steps.graalpython-commit.outputs.commit }}
-      - name: Clone graalvm/graalpython if needed
+      - name: git clone https://github.com/graalvm/graalpython
         if: steps.cache-git-clone-graalpython.outputs.cache-hit != 'true'
         id: git-clone-graalpython
         run: |
           git clone https://github.com/graalvm/graalpython
-
       ## Git Clone oracle/truffleruby if needed
       - name: Get last https://github.com/oracle/truffleruby Commit
         id: truffleruby-commit
@@ -112,25 +116,8 @@ jobs:
         id: git-clone-truffleruby
         run: |
           git clone https://github.com/oracle/truffleruby
-      - name: "Cache: mx --env ce build"
-        id: cache-build-ce
-        uses: actions/cache@v2.1.1
-        with:
-          path: |
-            mx/mxbuild
-            graaljs/graal-nodejs/mxbuild
-            graaljs/graal-js/mxbuild
-            graal/sdk/mxbuild
-            graal/vm/mxbuild
-            graal/compiler/mxbuild
-            graal/substratevm/mxbuild
-            graal/regex/mxbuild
-            graal/tools/mxbuild
-            graal/truffle/mxbuild
-            graal/sulong/mxbuild
-          key: cache-build-ce
       - name: "Run: mx --env ce build"
-        if: steps.cache-build-ce.outputs.cache-hit != 'true'
+        if: steps.cache-git-clone-graal.outputs.cache-hit != 'true'
         id: start-build-ce
         run: |
           export JAVA_HOME=$PWD/labsjdk-ce-15-jvmci-20.3-b01
@@ -143,6 +130,7 @@ jobs:
           mx --env ce sforceimports
           mx --env ce build
       - name: List all files from mxbuilds/* > release artifact
+        if: steps.cache-git-clone-graal.outputs.cache-hit != 'true'
         id: build-find-artifacts
         run: |
           find mx/mxbuild > release
@@ -158,7 +146,6 @@ jobs:
           find graal/sulong/mxbuild >> release
           export WORKING_DIR=$PWD
           cd graal
-          echo "::set-output name=tag::$(git rev-parse --short HEAD)" 
           export GRAAL_COMMIT=$(git rev-parse --short HEAD)
           cd sdk/mxbuild/linux-amd64/GRAALVM_CE_JAVA15/
           tar cvf - graalvm-ce-java15-20.3.0-dev | gzip -9 - > $WORKING_DIR/graalvm-ce-java15-linux-amd64-20.3.0-$GRAAL_COMMIT.tar.gz
@@ -166,38 +153,42 @@ jobs:
           tar cvf - graalvm-ce-no-native-java15-20.3.0-dev | gzip -9 - > $WORKING_DIR/graalvm-ce-no-native-java15-20.3.0-$GRAAL_COMMIT-amd64.tgz
           cd $WORKING_DIR
       - name: Archive production artifact release
+        if: steps.cache-git-clone-graal.outputs.cache-hit != 'true'
         uses: actions/upload-artifact@v2
         with:
           name: dist-file-list
           path: |
             release
       - name: Create graalvm-ce-java15-linux-amd64-20.3.0-dev Release
+        if: steps.cache-git-clone-graal.outputs.cache-hit != 'true'
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: vm-20.3.0-${{ steps.build-find-artifacts.outputs.tag }}-jdk15-jvmci-20.3-b01
-          release_name: Release graalvm-ce-java15-linux-amd64-20.3.0-${{ steps.build-find-artifacts.outputs.tag }}
+          tag_name: vm-20.3.0-${{ steps.graal-commit.outputs.tag }}-jdk15-jvmci-20.3-b01
+          release_name: Release graalvm-ce-java15-linux-amd64-20.3.0-${{ steps.graal-commit.outputs.tag }}
           draft: true
           prerelease: true
       - name: Upload graalvm-ce-java15-linux-amd64-20.3.0-dev
+        if: steps.cache-git-clone-graal.outputs.cache-hit != 'true'
         id: upload-release-asset-ce
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./graalvm-ce-java15-linux-amd64-20.3.0-${{ steps.build-find-artifacts.outputs.tag }}.tar.gz
-          asset_name: graalvm-ce-java15-linux-amd64-20.3.0-${{ steps.build-find-artifacts.outputs.tag }}.tar.gz
+          asset_path: ./graalvm-ce-java15-linux-amd64-20.3.0-${{ steps.graal-commit.outputs.tag }}.tar.gz
+          asset_name: graalvm-ce-java15-linux-amd64-20.3.0-${{ steps.graal-commit.outputs.tag }}.tar.gz
           asset_content_type: application/gzip
-      - name: Upload Release Asset
+      - name: Upload graalvm-ce-no_native-java15-linux-amd64-20.3.0-dev
+        if: steps.cache-git-clone-graal.outputs.cache-hit != 'true'
         id: upload-release-asset 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./graalvm-ce-no-native-java15-20.3.0-${{ steps.build-find-artifacts.outputs.tag }}-amd64.tgz
-          asset_name: graalvm-ce-no-native-java15-20.3.0-${{ steps.build-find-artifacts.outputs.tag }}-amd64.tgz
+          asset_path: ./graalvm-ce-no-native-java15-20.3.0-${{ steps.graal-commit.outputs.tag }}-amd64.tgz
+          asset_name: graalvm-ce-no-native-java15-20.3.0-${{ steps.graal-commit.outputs.tag }}-amd64.tgz
           asset_content_type: application/gzip 
