@@ -113,7 +113,8 @@ jobs:
           mv graalvm-ce-java15-20.3.0-dev graalvm-ce-java15-20.3.0-$(cat $WORKING_DIR/COMMITS)
           tar cvf - graalvm-ce-java15-20.3.0-$(cat $WORKING_DIR/COMMITS) | gzip -9 - > $WORKING_DIR/graalvm-ce-java15-linux-amd64-20.3.0-$(cat $WORKING_DIR/COMMITS).tar.gz
           cd ../GRAALVM_CE_NO_NATIVE_JAVA15/
-          tar cvf - graalvm-ce-no-native-java15-20.3.0-$(cat $WORKING_DIR/COMMITS) | gzip -9 - > $WORKING_DIR/graalvm-ce-no-native-java15-20.3.0-$(cat $WORKING_DIR/COMMITS)-amd64.tgz
+          mv *-dev graalvm-ce-no_native-java15-20.3.0-$(cat $WORKING_DIR/COMMITS)
+          tar cvf - graalvm-ce-no_native-java15-20.3.0-$(cat $WORKING_DIR/COMMITS) | gzip -9 - > $WORKING_DIR/graalvm-ce-no_native-java15-20.3.0-$(cat $WORKING_DIR/COMMITS)-amd64.tgz
           cd $WORKING_DIR
       - name: Archive production artifact release
         if: steps.cache-git-clone-graal.outputs.cache-hit != 'true'
@@ -150,6 +151,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./graalvm-ce-no-native-java15-20.3.0-${{ steps.graalvm.outputs.commit }}-amd64.tgz
-          asset_name: graalvm-ce-no-native-java15-20.3.0-${{ steps.graalvm.outputs.commit }}-amd64.tgz
+          asset_path: ./graalvm-ce-no_native-java15-20.3.0-${{ steps.graalvm.outputs.commit }}-amd64.tgz
+          asset_name: graalvm-ce-no_native-java15-20.3.0-${{ steps.graalvm.outputs.commit }}-amd64.tgz
           asset_content_type: application/gzip 
