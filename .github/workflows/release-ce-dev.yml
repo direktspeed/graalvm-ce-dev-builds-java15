@@ -45,7 +45,7 @@ jobs:
           cat COMMITS
           git config --global user.email "frank@dspeed.eu"
           git config --global user.name "Frank Lemanschik"
-          git commit -am "$(cat ./COMMITS)"
+          git commit -am "$(cat ./COMMITS)" || exit 1
           git push https://frank-dspeed:$SUPER_SECRET@github.com/direktspeed/graalvm-stack     
       
       - name: Get GraalVM+GaalJS COMMITS
