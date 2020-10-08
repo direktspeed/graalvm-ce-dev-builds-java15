@@ -45,7 +45,7 @@ jobs:
           cat COMMITS
           git config --global user.email "frank@dspeed.eu"
           git config --global user.name "Frank Lemanschik"
-          git commit -am "$(cat ./COMMITS)" || exit 1 
+          git commit -am "$(cat ./COMMITS)"
           git push https://frank-dspeed:$SUPER_SECRET@github.com/direktspeed/graalvm-stack     
       
       - name: Get GraalVM+GaalJS COMMITS
@@ -111,7 +111,7 @@ jobs:
           export GRAAL_COMMIT=$(git rev-parse --short HEAD)
           cd sdk/mxbuild/linux-amd64/GRAALVM_CE_JAVA15/
           mv graalvm-ce-java15-20.3.0-dev graalvm-ce-java15-20.3.0-$(cat $WORKING_DIR/COMMITS)
-          tar cvf - graalvm-ce-java15-20.3.0-$(cat $WORKING_DIR/COMMITS) | gzip -9 - > $WORKING_DIR/graalvm-ce-java15-linux-amd64-20.3.0-$GRAAL_COMMIT.tar.gz
+          tar cvf - graalvm-ce-java15-20.3.0-$(cat $WORKING_DIR/COMMITS) | gzip -9 - > $WORKING_DIR/graalvm-ce-java15-linux-amd64-20.3.0-$(cat $WORKING_DIR/COMMITS).tar.gz
           cd ../GRAALVM_CE_NO_NATIVE_JAVA15/
           tar cvf - graalvm-ce-no-native-java15-20.3.0-$(cat $WORKING_DIR/COMMITS) | gzip -9 - > $WORKING_DIR/graalvm-ce-no-native-java15-20.3.0-$(cat $WORKING_DIR/COMMITS)-amd64.tgz
           cd $WORKING_DIR
