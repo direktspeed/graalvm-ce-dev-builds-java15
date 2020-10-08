@@ -40,7 +40,7 @@ jobs:
           SUPER_SECRET: ${{ secrets.PAT }}
         run: |
           export GRAALVM_COMMIT=$(curl --silent https://api.github.com/repos/oracle/graal/commits/master | jq .sha | xargs)
-          export GRAALJS_COMMIT=$(curl --silent https://api.github.com/repos/oracle/graal/commits/master | jq .sha | xargs)
+          export GRAALJS_COMMIT=$(curl --silent https://api.github.com/repos/graalvm/graaljs/commits/master | jq .sha | xargs)
           echo GRAALVM-$(git rev-parse --short $GRAALVM_COMMIT)-GRAALJS-$(git rev-parse --short $GRAALJS_COMMIT) > COMMITS
           cat COMMITS
           git config --global user.email "frank@dspeed.eu"
