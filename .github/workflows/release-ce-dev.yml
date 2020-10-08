@@ -42,7 +42,9 @@ jobs:
           export GRAALVM_COMMIT=$(curl --silent https://api.github.com/repos/oracle/graal/commits/master | jq .sha | xargs)
           export GRAALJS_COMMIT=$(curl --silent https://api.github.com/repos/oracle/graal/commits/master | jq .sha | xargs)
           echo GRAALVM-$(git rev-parse --short $GRAALVM_COMMIT)-GRAALJS-$(git rev-parse --short $GRAALJS_COMMIT) > COMMITS
-          #cat COMMITS
+          cat COMMITS
+          git config --global user.email "frank@dspeed.eu"
+          git config --global user.name "Frank Lemanschik"
           git commit -am "$(cat ./COMMITS)" && git push https://frank-dspeed:$SUPER_SECRET@github.com/direktspeed/graalvm-stack     
       
       - name: Get GraalVM+GaalJS COMMITS
