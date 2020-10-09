@@ -87,9 +87,10 @@ jobs:
           echo $JAVA_HOME 
           export PATH=$PWD/mx:$PATH
           cd graal/vm
-          mx --env ce-no_native sforceimports
+          ## This may checkout the old versions in the Suite.
+          # mx --env ce-no_native sforceimports
           mx --env ce-no_native build
-          mx --env ce sforceimports
+          # mx --env ce sforceimports
           mx --env ce build
       - name: List all files from mxbuilds/* > release artifact
         id: build-find-artifacts
