@@ -18,7 +18,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      - name: Cache labsjdk-ce-15+36-jvmci-20.3-b03-linux-amd64 download
+      - name: Cache labsjdk-ce-15.0.1+9-jvmci-20.3-b03-linux-amd64 download
         id: download
         uses: actions/cache@v2.1.1
         with:
