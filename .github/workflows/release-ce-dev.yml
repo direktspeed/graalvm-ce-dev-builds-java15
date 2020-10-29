@@ -82,7 +82,7 @@ jobs:
         if: steps.cache-git-clone-graal.outputs.cache-hit != 'true'
         id: start-build-ce
         run: |
-          export JAVA_HOME=$PWD/labsjdk-ce-15-jvmci-20.3-b01
+          export JAVA_HOME=$PWD/labsjdk-ce-15.0.1-jvmci-20.3-b03
           export PATH=$JAVA_HOME/bin:$PATH
           echo $JAVA_HOME 
           export PATH=$PWD/mx:$PATH
@@ -130,7 +130,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: vm-20.3.0-${{ steps.graalvm.outputs.commit }}-jdk15-jvmci-20.3-b01
+          tag_name: vm-20.3.0-${{ steps.graalvm.outputs.commit }}-jdk15-jvmci-20.3-b03
           release_name: Release graalvm-ce-java15-linux-amd64-20.3.0-${{ steps.graalvm.outputs.commit }}
           draft: true
           prerelease: true
