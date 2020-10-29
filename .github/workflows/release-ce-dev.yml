@@ -18,21 +18,21 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      - name: Cache labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64 download
+      - name: Cache labsjdk-ce-15+36-jvmci-20.3-b03-linux-amd64 download
         id: download
         uses: actions/cache@v2.1.1
         with:
           # A list of files, directories, and wildcard patterns to cache and restore
-          path: labsjdk-ce-15-jvmci-20.3-b01
-          key: labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64
+          path: 15.0.1+9-jvmci-20.3-b03
+          key: 15.0.1+9-jvmci-20.3-b03
           # An ordered list of keys to use for restoring the cache if no cache hit occurred for key
           # restore-keys: # optional
       # Runs a set of commands using the runners shell
       - name: Download labs-jdk-adm64
         if: steps.download.outputs.cache-hit != 'true'
         run: |
-          wget https://github.com/graalvm/labs-openjdk-15/releases/download/jvmci-20.3-b01/labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64.tar.gz
-          tar -xf labsjdk-ce-15+36-jvmci-20.3-b01-linux-amd64.tar.gz
+          wget https://github.com/graalvm/labs-openjdk-15/releases/download/jvmci-20.3-b03/labsjdk-ce-15.0.1+9-jvmci-20.3-b03-linux-amd64.tar.gz
+          tar -xf labsjdk-ce-15.0.1+9-jvmci-20.3-b03-linux-amd64.tar.gz
       
       ## Clone Graal if needed
       - shell: bash
