@@ -27,7 +27,7 @@ jobs:
           export V=$J+9-$CI
           wget https://github.com/graalvm/labs-openjdk-15/releases/download/$CI/labsjdk-ce-$V-linux-amd64.tar.gz
           tar -xf labsjdk-ce-$V-linux-amd64.tar.gz
-          echo "::set-output name=tag::$CI"
+          echo "::set-output name=ci::$CI"
           echo "::set-output name=v::$V"
           echo "::set-output name=j::$J"
       ## Clone Graal if needed
@@ -74,7 +74,7 @@ jobs:
       - name: "Run: mx --env ce build"
         id: start-build-ce
         env:
-          JDK_VERSION: ${{ steps.jdk.outputs.j }}
+          JDK_VERSION: ${{ steps.jdk.outputs.j }}-${{ steps.jdk.outputs.ci }}
         run: |
           export JAVA_HOME=$PWD/labsjdk-ce-$JDK_VERSION
           export PATH=$JAVA_HOME/bin:$PATH
