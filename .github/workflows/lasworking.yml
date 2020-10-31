@@ -71,7 +71,7 @@ jobs:
           git clone https://github.com/oracle/truffleruby
       - name: "Run: mx --env ce build"
         id: start-build-ce
-        env: |
+        env:
           JDK_VERSION: ${{ steps.jdk.outputs.v }}
         run: |
           export JAVA_HOME=$PWD/labsjdk-ce-$JDK_VERSION
@@ -88,7 +88,7 @@ jobs:
           mx --env ce build
       - name: List all files from mxbuilds/* > release artifact
         id: build-find-artifacts
-        env: |
+        env:
           VM: ${{ steps.graalvm.outputs.v }}
         run: |
           export COMMIT_HASH=$(cat COMMITS)
