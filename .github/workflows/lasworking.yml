@@ -24,8 +24,8 @@ jobs:
         run: |
           export CI=jvmci-20.3-b03
           export J=15.0.1
-          export V=$J+9-$J
-          wget https://github.com/graalvm/labs-openjdk-15/releases/download/$J/labsjdk-ce-$V-linux-amd64.tar.gz
+          export V=$J+9-$CI
+          wget https://github.com/graalvm/labs-openjdk-15/releases/download/$CI/labsjdk-ce-$V-linux-amd64.tar.gz
           tar -xf labsjdk-ce-$V-linux-amd64.tar.gz
           echo "::set-output name=tag::$CI"
           echo "::set-output name=v::$V"
