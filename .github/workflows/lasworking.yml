@@ -22,12 +22,14 @@ jobs:
       - name: Download labs-jdk-adm64
         id: jdk
         run: |
-          export J=jvmci-20.3-b03
-          export V=15.0.1+9-$J
+          export CI=jvmci-20.3-b03
+          export J=15.0.1
+          export V=$J+9-$J
           wget https://github.com/graalvm/labs-openjdk-15/releases/download/$J/labsjdk-ce-$V-linux-amd64.tar.gz
           tar -xf labsjdk-ce-$V-linux-amd64.tar.gz
-          echo "::set-output name=tag::$J"
+          echo "::set-output name=tag::$CI"
           echo "::set-output name=v::$V"
+          echo "::set-output name=j::$J"
       ## Clone Graal if needed
       - shell: bash
         id: graalvm
@@ -72,7 +74,7 @@ jobs:
       - name: "Run: mx --env ce build"
         id: start-build-ce
         env:
-          JDK_VERSION: ${{ steps.jdk.outputs.v }}
+          JDK_VERSION: ${{ steps.jdk.outputs.j }}
         run: |
           export JAVA_HOME=$PWD/labsjdk-ce-$JDK_VERSION
           export PATH=$JAVA_HOME/bin:$PATH
