@@ -1,0 +1,157 @@
+name: CI-release-graalvm-ce-java15-linux-amd64-20.3.0-dev
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the main branch
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '10 */15 * * *'
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      - name: Cache labsjdk-ce-15.0.1+9-jvmci-20.3-b03-linux-amd64 download
+        id: download
+        uses: actions/cache@v2.1.1
+        with:
+          # A list of files, directories, and wildcard patterns to cache and restore
+          path: 15.0.1+9-jvmci-20.3-b03
+          key: 15.0.1+9-jvmci-20.3-b03
+          # An ordered list of keys to use for restoring the cache if no cache hit occurred for key
+          # restore-keys: # optional
+      # Runs a set of commands using the runners shell
+      - name: Download labs-jdk-adm64
+        if: steps.download.outputs.cache-hit != 'true'
+        run: |
+          wget https://github.com/graalvm/labs-openjdk-15/releases/download/jvmci-20.3-b03/labsjdk-ce-15.0.1+9-jvmci-20.3-b03-linux-amd64.tar.gz
+          tar -xf labsjdk-ce-15.0.1+9-jvmci-20.3-b03-linux-amd64.tar.gz
+      
+      ## Clone Graal if needed
+      - shell: bash
+        env:
+          SUPER_SECRET: ${{ secrets.PAT }}
+        run: |
+          export GRAALVM_COMMIT=$(curl --silent https://api.github.com/repos/oracle/graal/commits/master | jq .sha | xargs)
+          export GRAALJS_COMMIT=$(curl --silent https://api.github.com/repos/graalvm/graaljs/commits/master | jq .sha | xargs)
+          echo GRAALVM-$(git rev-parse --short $GRAALVM_COMMIT)-GRAALJS-$(git rev-parse --short $GRAALJS_COMMIT) > COMMITS
+          cat COMMITS
+          git config --global user.email "frank@dspeed.eu"
+          git config --global user.name "Frank Lemanschik"
+          git commit -am "$(cat ./COMMITS)" || exit 0
+          git push https://frank-dspeed:$SUPER_SECRET@github.com/direktspeed/graalvm-stack     
+      
+      - name: Get GraalVM+GaalJS COMMITS
+        id: graalvm
+        run: echo "::set-output name=commit::$(cat COMMITS)"      
+
+      - name: Get Graal short Commit id
+        id: graal-commit
+        run: |
+          git clone https://github.com/oracle/graal      
+          cd graal
+          echo "::set-output name=tag::$(git rev-parse --short HEAD)"      
+      - name: Get last GraalJS Commit
+        id: graaljs-commit
+        run: |
+          git clone https://github.com/graalvm/graaljs
+          cd graaljs
+          echo "::set-output name=commit::$(git rev-parse --short HEAD)" 
+ 
+      - name: Clone https://github.com/graalvm/mx  
+        id: git-clone-mx
+        run: |
+          git clone https://github.com/graalvm/mx
+      - name: git clone https://github.com/graalvm/graalpython
+        id: git-clone-graalpython
+        run: |
+          git clone https://github.com/graalvm/graalpython         
+      - name: "Run: git clone https://github.com/oracle/truffleruby"
+        id: git-clone-truffleruby
+        run: |
+          git clone https://github.com/oracle/truffleruby
+      - name: "Run: mx --env ce build"
+        if: steps.cache-git-clone-graal.outputs.cache-hit != 'true'
+        id: start-build-ce
+        run: |
+          export JAVA_HOME=$PWD/labsjdk-ce-15.0.1-jvmci-20.3-b03
+          export PATH=$JAVA_HOME/bin:$PATH
+          echo $JAVA_HOME 
+          export PATH=$PWD/mx:$PATH
+          cd graal/vm
+          git checkout 55b6687
+          ## This may checkout the old versions in the Suite.
+          # mx --env ce-no_native sforceimports
+          mx --env ce-no_native build
+          # mx --env ce sforceimports
+          mx --env ce build
+      - name: List all files from mxbuilds/* > release artifact
+        id: build-find-artifacts
+        run: |
+          export COMMIT_HASH=$(cat COMMITS)
+          find mx/mxbuild > release
+          find graaljs/graal-nodejs/mxbuild >> release
+          find graaljs/graal-js/mxbuild >> release
+          find graal/sdk/mxbuild >> release
+          find graal/vm/mxbuild >> release
+          find graal/compiler/mxbuild >> release
+          find graal/substratevm/mxbuild >> release
+          find graal/regex/mxbuild >> release
+          find graal/tools/mxbuild >> release
+          find graal/truffle/mxbuild >> release
+          find graal/sulong/mxbuild >> release
+          export WORKING_DIR=$PWD
+          cd graal
+          export GRAAL_COMMIT=$(git rev-parse --short HEAD)
+          cd sdk/mxbuild/linux-amd64/GRAALVM_CE_JAVA15/
+          mv graalvm-ce-java15-21.0.0-dev graalvm-ce-java15-21.0.0-$(cat $WORKING_DIR/COMMITS)
+          tar cvf - graalvm-ce-java15-21.0.0-$(cat $WORKING_DIR/COMMITS) | gzip -9 - > $WORKING_DIR/graalvm-ce-java15-linux-amd64-21.0.0-$(cat $WORKING_DIR/COMMITS).tar.gz
+          cd ../GRAALVM_CE_NO_NATIVE_JAVA15/
+          mv *-dev graalvm-ce-no_native-java15-21.0.0-$(cat $WORKING_DIR/COMMITS)
+          tar cvf - graalvm-ce-no_native-java15-21.0.0-$(cat $WORKING_DIR/COMMITS) | gzip -9 - > $WORKING_DIR/graalvm-ce-no_native-java15-21.0.0-$(cat $WORKING_DIR/COMMITS)-amd64.tgz
+          cd $WORKING_DIR
+      - name: Archive production artifact release
+        if: steps.cache-git-clone-graal.outputs.cache-hit != 'true'
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist-file-list
+          path: |
+            release
+      - name: Create graalvm-ce-java15-linux-amd64-20.3.0-dev Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: vm-21.0.0-${{ steps.graalvm.outputs.commit }}-jdk15-jvmci-20.3-b03
+          release_name: Release graalvm-ce-java15-linux-amd64-21.0.0-${{ steps.graalvm.outputs.commit }}
+          draft: true
+          prerelease: true
+      - name: Upload graalvm-ce-java15-linux-amd64-21.0.0-dev
+        id: upload-release-asset-ce
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./graalvm-ce-java15-linux-amd64-20.3.0-${{ steps.graalvm.outputs.commit }}.tar.gz
+          asset_name: graalvm-ce-java15-linux-amd64-20.3.0-${{ steps.graalvm.outputs.commit }}.tar.gz
+          asset_content_type: application/gzip
+      - name: Upload graalvm-ce-no_native-java15-linux-amd64-21.0.0-dev
+        if: steps.cache-git-clone-graal.outputs.cache-hit != 'true'
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./graalvm-ce-no_native-java15-21.0.0-${{ steps.graalvm.outputs.commit }}-amd64.tgz
+          asset_name: graalvm-ce-no_native-java15-21.0.0-${{ steps.graalvm.outputs.commit }}-amd64.tgz
+          asset_content_type: application/gzip 
