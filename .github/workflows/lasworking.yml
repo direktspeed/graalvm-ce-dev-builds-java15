@@ -82,10 +82,10 @@ jobs:
           export PATH=$PWD/mx:$PATH
           cd graal/vm
           ## Last known working 20.3
-          #git checkout 55b6687
+          git checkout 55b6687
           ## This may checkout the old versions in the Suite.
-          #mx --env ce-no_native sforceimports
-          #mx --env ce sforceimports
+          mx --env ce-no_native sforceimports
+          mx --env ce sforceimports
           ## Latest
           mx --env ce-no_native build
           mx --env ce build
@@ -110,7 +110,11 @@ jobs:
           cd graal
           export GRAAL_COMMIT=$(git rev-parse --short HEAD)
           cd sdk/mxbuild/linux-amd64/GRAALVM_CE_JAVA15/
-          mv graalvm-ce-java15-20.3-dev graalvm-ce-java15-$VM-$(cat $WORKING_DIR/COMMITS)
+          #mv graalvm-ce-java15-20.3-dev graalvm-ce-java15-$VM-$(cat $WORKING_DIR/COMMITS)
+          echo "#########################################"
+          ls -l
+          mv *-dev graalvm-ce-java15-$VM-$(cat $WORKING_DIR/COMMITS)
+          echo "#########################################"
           tar cvf - graalvm-ce-java15-$VM-$(cat $WORKING_DIR/COMMITS) | gzip -9 - > $WORKING_DIR/graalvm-ce-java15-linux-amd64-$VM-$(cat $WORKING_DIR/COMMITS).tar.gz
           cd ../GRAALVM_CE_NO_NATIVE_JAVA15/
           mv *-dev graalvm-ce-no_native-java15-$VM-$(cat $WORKING_DIR/COMMITS)
