@@ -82,7 +82,7 @@ jobs:
           export PATH=$PWD/mx:$PATH
           cd graal/vm
           ## Last known working 20.3
-          git checkout 55b6687
+          #git checkout 55b6687
           ## This may checkout the old versions in the Suite.
           mx --env ce-no_native sforceimports
           mx --env ce sforceimports
