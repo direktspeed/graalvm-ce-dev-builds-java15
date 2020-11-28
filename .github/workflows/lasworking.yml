@@ -22,7 +22,8 @@ jobs:
       - name: Download labs-jdk-adm64
         id: jdk
         run: |
-          export CI=jvmci-20.3-b06
+          export CI=jvmci-21.0-b02
+          #jvmci-20.3-b06
           export J=15.0.1
           export V=$J+9-$CI
           wget https://github.com/graalvm/labs-openjdk-15/releases/download/$CI/labsjdk-ce-$V-linux-amd64.tar.gz
