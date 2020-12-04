@@ -3,12 +3,13 @@ Custom GraalVM Distribution for use in Direktspeed Projects
 
 
 ## Installation
-
+i think in lib/node_modules/bin should be nothing but who knows
 ``` 
-mkdir  ~/.graalvm && cd ~/.graalvm
-curl -s https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.3.0/graalvm-ce-java11-linux-amd64-20.3.0.tar.gz | tar Jxf --strip 1 -C ~/.graalvm
-GRAALVM_HOME=~/.graalvm
-JAVA_HOME=~/.graalvm
-PATH=~/.graalvm/bin:~/.graalvm/languages/js/bin:~/.graalvm/languages/js/lib/node_modules/bin
-npm set prefix ~/.graalvm/languages/js/lib/node_modules
+export GRAALVM_HOME=~/.graalvm
+export NPM_HOME=$GRAALVM_HOME/languages/js
+export JAVA_HOME=$GRAALVM_HOME
+export PATH=$GRAALVM_HOME/bin:$GRAALVM_HOME/languages/js/bin:$NODE_HOME/lib/node_modules/bin
+mkdir $GRAALVM_HOME && cd $GRAALVM_HOME
+curl -s -L https://github.com/graalvm/graalvm-ce-dev-builds/releases/download/21.0.0-dev-20201204_0332/graalvm-ce-java11-linux-amd64-dev.tar.gz | tar zxf - --strip 1 -C $GRAALVM_HOME
+npm set prefix $NPM_HOME
 ``` 
