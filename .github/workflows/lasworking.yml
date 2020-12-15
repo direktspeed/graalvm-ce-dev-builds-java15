@@ -22,7 +22,7 @@ jobs:
       - name: Download labs-jdk-adm64
         id: jdk
         run: |
-          export CI=jvmci-21.0-b02
+          export CI=jvmci-21.0-b03
           #jvmci-20.3-b06
           export J=15.0.1
           export V=$J+9-$CI
