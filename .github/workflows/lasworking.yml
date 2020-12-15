@@ -89,7 +89,7 @@ jobs:
           mx --env ce sforceimports
           ## Latest
           mx --env ce-no_native build
-          mx --env ce build
+          #mx --env ce build
       - name: List all files from mxbuilds/* > release artifact
         id: build-find-artifacts
         env:
