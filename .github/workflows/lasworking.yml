@@ -94,6 +94,7 @@ jobs:
           export BUILD_EXTRA_UPPERCASE=$(echo $BUILD_EXTRA | sed -r 's/[-]+/_/g' | sed -e 's/\(.*\)/\U\1/')
           export BUILD_NAME=$BUILD_EXTRA-$GRAALVM_VERSION-$(cat $WORKING_DIR/COMMITS)
           echo "::set-output name=name::$BUILD_NAME"
+          ls -ahl
           cd graal
           export GRAAL_COMMIT=$(git rev-parse --short HEAD)
           cd vm
