@@ -37,7 +37,7 @@ jobs:
           tar -xf labsjdk-ce-$JDK_VERSION-linux-amd64.tar.gz
           mv labsjdk-ce-$JAVA_VERSION-$JVMCI labsjdk-ce-$JDK_VERSION
           echo "export GRAALVM_COMMIT=$(curl --silent -L https://api.github.com/repos/oracle/graal/commits/master | jq .sha | xargs)" >> .env && source .env
-          echo "export GRAALJS_COMMIT=$(curl --silent -L https://api.github.com/repos/graalvm/graaljs/commits/master | jq .sha | xargs)" >> .env && source .env
+          echo "export GRAALJS_COMMIT=$(curl --silent -L https://api.github.com/repos/oracle/graaljs/commits/master | jq .sha | xargs)" >> .env && source .env
           echo GRAALVM-$(git rev-parse --short $GRAALVM_COMMIT)-GRAALJS-$(git rev-parse --short $GRAALJS_COMMIT) > COMMITS
           export GRAALVM_BUILD_VERSION=$GRAALVM_VERSION-$(cat COMMITS)
           echo "::set-output name=commit::$(cat COMMITS)"
