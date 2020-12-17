@@ -24,37 +24,38 @@ jobs:
         env:
           SUPER_SECRET: ${{ secrets.PAT }}
         run: |
-          # jvmci-20.3-b06
-          echo "export JVMCI=jvmci-21.0-b03" > .env
+          echo "# jvmci-20.3-b06"
+          echo "export GRAALVM_VERSION=21.0.0" > .env
           git add .env
-          echo "export J=15.0.1" >> .env && source .env
-          echo "export JAVA_HOME=$PWD/labsjdk-ce-$J-$JVMCI" >> .env && source .env 
-          echo "export PATH=$JAVA_HOME/bin:$PATH" >> .env && source .env
-          echo "export V=$J+9-$JVMCI" >> .env && source .env     
-          wget https://github.com/graalvm/labs-openjdk-15/releases/download/$CI/labsjdk-ce-$V-linux-amd64.tar.gz
-          tar -xf labsjdk-ce-$V-linux-amd64.tar.gz
+          export JAVA_VERSION=15.0.1
+          echo "export JVMCI=jvmci-21.0-b03" >> .env && source .env
+          echo "export JDK_VERSION=$JAVA_VERSION+9-$JVMCI" >> .env && source .env     
+          echo "export JAVA_HOME=$PWD/labsjdk-ce-$JDK_VERSION" >> .env && source .env 
+          echo "export PATH=$PWD/mx:$JAVA_HOME/bin:$PATH" >> .env && source .env
+          echo "export WORKING_DIR=$PWD" >> .env && source .env
+          wget https://github.com/graalvm/labs-openjdk-15/releases/download/$JVMCI/labsjdk-ce-$JDK_VERSION-linux-amd64.tar.gz
+          tar -xf labsjdk-ce-$JDK_VERSION-linux-amd64.tar.gz
+          mv labsjdk-ce-$JAVA_VERSION-$JVMCI labsjdk-ce-$JDK_VERSION
           echo "export GRAALVM_COMMIT=$(curl --silent https://api.github.com/repos/oracle/graal/commits/master | jq .sha | xargs)" >> .env
           echo "export GRAALJS_COMMIT=$(curl --silent https://api.github.com/repos/graalvm/graaljs/commits/master | jq .sha | xargs)" >> .env
           echo GRAALVM-$(git rev-parse --short $GRAALVM_COMMIT)-GRAALJS-$(git rev-parse --short $GRAALJS_COMMIT) > COMMITS
+          export GRAALVM_BUILD_VERSION=$GRAALVM_VERSION-$(cat COMMITS)
           echo "::set-output name=commit::$(cat COMMITS)"
-          echo "::set-output name=vm::21.0"
-          echo "::set-output name=gv::21.0.0"
-          echo "::set-output name=v::$V"
-          echo "::set-output name=tagname::$V"
-          echo "::set-output name=releasename::$V"
+          echo "::set-output name=tagname::vm-$GRAALVM_BUILD_VERSION-jdk$JDK_VERSION"
+          echo "::set-output name=releasename::Release graalvm-ce-$GRAALVM_BUILD_VERSION-linux-amd64"
           cat COMMITS
           git config --global user.email "frank@dspeed.eu"
           git config --global user.name "Frank Lemanschik"
           git commit -am "$(cat ./COMMITS)" || exit 0
           git push https://frank-dspeed:$SUPER_SECRET@github.com/direktspeed/graalvm-stack
-      - name: Create graalvm-ce-${{ steps.jdk.outputs.gv }}-${{ steps.graalvm.outputs.commit }}-jdk${{ steps.jdk.outputs.v }}-linux-amd64
+      - name: Create graalvm-ce Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: vm-${{ steps.jdk.outputs.gv }}-${{ steps.jdk.outputs.commit }}-jdk${{ steps.jdk.outputs.v }}
-          release_name: Release graalvm-ce-${{ steps.jdk.outputs.gv }}-${{ steps.jdk.outputs.commit }}-jdk${{ steps.jdk.outputs.v }}-linux-amd64
+          tag_name: ${{ steps.jdk.outputs.tagname }}
+          release_name: ${{ steps.jdk.outputs.releasename }}
           draft: true
           prerelease: true
       
@@ -84,21 +85,14 @@ jobs:
       #    git clone https://github.com/oracle/truffleruby
       - name: "Run: mx --env ce build"
         id: build
-        env: 
-          VM: ${{ steps.jdk.outputs.vm }}
-          JDK_VERSION: ${{ steps.jdk.outputs.v }}
         run: |
-          export JAVA_HOME=$PWD/labsjdk-ce-$JDK_VERSION
-          export PATH=$JAVA_HOME/bin:$PATH
-          echo $JAVA_HOME 
-          export PATH=$PWD/mx:$PATH
-          export WORKING_DIR=$PWD
+          source .env
           #export BUILD_SUITE=ce
           export BUILD_SUITE=ce-no_native 
           export BUILD_EXTRA=graalvm-$BUILD_SUITE-java15 
           # graalvm-ce-no_native-java15 => GRAALVM_CE_NO_NATIVE_JAVA15
           export BUILD_EXTRA_UPPERCASE=$(echo $BUILD_EXTRA | sed -r 's/[-]+/_/g' | sed -e 's/\(.*\)/\U\1/')
-          export BUILD_NAME=$BUILD_EXTRA-$VM-$(cat $WORKING_DIR/COMMITS)
+          export BUILD_NAME=$BUILD_EXTRA-$GRAALVM_VERSION-$(cat $WORKING_DIR/COMMITS)
           echo "::set-output name=name::$BUILD_NAME"
           cd graal
           export GRAAL_COMMIT=$(git rev-parse --short HEAD)
