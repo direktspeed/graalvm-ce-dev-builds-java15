@@ -48,7 +48,28 @@ jobs:
           git config --global user.name "Frank Lemanschik"
           git commit -am "$(cat ./COMMITS)" || exit 0
           git push https://frank-dspeed:$SUPER_SECRET@github.com/direktspeed/graalvm-stack
+          git clone https://github.com/graalvm/mx
           git clone https://github.com/oracle/graal
+          #export BUILD_SUITE=ce
+          export BUILD_SUITE=ce-no_native 
+          export BUILD_EXTRA=graalvm-$BUILD_SUITE-java15 
+          # graalvm-ce-no_native-java15 => GRAALVM_CE_NO_NATIVE_JAVA15
+          export BUILD_EXTRA_UPPERCASE=$(echo $BUILD_EXTRA | sed -r 's/[-]+/_/g' | sed -e 's/\(.*\)/\U\1/')
+          export BUILD_NAME=$BUILD_EXTRA-$GRAALVM_VERSION-$(cat $WORKING_DIR/COMMITS)
+          echo "::set-output name=name::$BUILD_NAME"
+          ls -ahl
+          cd graal
+          export GRAAL_COMMIT=$(git rev-parse --short HEAD)
+          cd vm
+          ## This may checkout the old versions in the Suite.
+          mx --env $BUILD_SUITE sforceimports
+          ## last fully working suite git checkout 55b6687 20.3     
+          # For example mx --env ce --exclude-components=gu build builds the "default CE" configuration except without gu. Or mx --env ce --exclude-components=gu graalvm-show shows you what it will build.        
+          mx --env $BUILD_SUITE build
+          cd ../sdk/mxbuild/linux-amd64
+          mv $BUILD_EXTRA_UPPERCASE/*-dev $BUILD_NAME
+          tar cvf - $BUILD_NAME | gzip -9 - > $WORKING_DIR/$BUILD_NAME-amd64.tgz
+          cd $WORKING_DIR
       - name: Create graalvm-ce Release
         id: create_release
         uses: actions/create-release@v1
@@ -84,30 +105,6 @@ jobs:
       #  id: git-clone-truffleruby
       #  run: |
       #    git clone https://github.com/oracle/truffleruby
-      - name: "Run: mx --env ce build"
-        id: build
-        run: |
-          source .env
-          #export BUILD_SUITE=ce
-          export BUILD_SUITE=ce-no_native 
-          export BUILD_EXTRA=graalvm-$BUILD_SUITE-java15 
-          # graalvm-ce-no_native-java15 => GRAALVM_CE_NO_NATIVE_JAVA15
-          export BUILD_EXTRA_UPPERCASE=$(echo $BUILD_EXTRA | sed -r 's/[-]+/_/g' | sed -e 's/\(.*\)/\U\1/')
-          export BUILD_NAME=$BUILD_EXTRA-$GRAALVM_VERSION-$(cat $WORKING_DIR/COMMITS)
-          echo "::set-output name=name::$BUILD_NAME"
-          ls -ahl
-          cd graal
-          export GRAAL_COMMIT=$(git rev-parse --short HEAD)
-          cd vm
-          ## This may checkout the old versions in the Suite.
-          mx --env $BUILD_SUITE sforceimports
-          ## last fully working suite git checkout 55b6687 20.3     
-          # For example mx --env ce --exclude-components=gu build builds the "default CE" configuration except without gu. Or mx --env ce --exclude-components=gu graalvm-show shows you what it will build.        
-          mx --env $BUILD_SUITE build
-          cd ../sdk/mxbuild/linux-amd64
-          mv $BUILD_EXTRA_UPPERCASE/*-dev $BUILD_NAME
-          tar cvf - $BUILD_NAME | gzip -9 - > $WORKING_DIR/$BUILD_NAME-amd64.tgz
-          cd $WORKING_DIR
       - name: Upload Build
         id: upload-release-asset 
         uses: actions/upload-release-asset@v1
