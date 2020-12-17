@@ -48,6 +48,7 @@ jobs:
           git config --global user.name "Frank Lemanschik"
           git commit -am "$(cat ./COMMITS)" || exit 0
           git push https://frank-dspeed:$SUPER_SECRET@github.com/direktspeed/graalvm-stack
+          git clone https://github.com/oracle/graal
       - name: Create graalvm-ce Release
         id: create_release
         uses: actions/create-release@v1
