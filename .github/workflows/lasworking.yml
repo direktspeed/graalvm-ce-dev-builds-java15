@@ -46,7 +46,9 @@ jobs:
           cat COMMITS
           git config --global user.email "frank@dspeed.eu"
           git config --global user.name "Frank Lemanschik"
-          git commit -am "$(cat ./COMMITS)" || exit 0
+          ## Early Exit here if double work would happen
+          # git commit -am "$(cat ./COMMITS)" || exit 0
+          git commit -am "$(cat ./COMMITS)" || echo ""
           git push https://frank-dspeed:$SUPER_SECRET@github.com/direktspeed/graalvm-stack
           git clone https://github.com/graalvm/mx
           git clone https://github.com/oracle/graal
@@ -112,8 +114,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./${{ steps.build.outputs.name }}-amd64.tgz
-          asset_name: ${{ steps.build.outputs.name }}-amd64.tgz
+          asset_path: ./${{ steps.jdk.outputs.name }}-amd64.tgz
+          asset_name: ${{ steps.jdk.outputs.name }}-amd64.tgz
           asset_content_type: application/gzip 
       - name: List all files from mxbuilds/* > release artifact
         id: build-find-artifacts
