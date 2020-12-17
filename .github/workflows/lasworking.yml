@@ -31,6 +31,7 @@ jobs:
           echo "export JAVA_HOME=$PWD/labsjdk-ce-$J-$CI" >> .env
           echo "export PATH=$JAVA_HOME/bin:$PATH" >> .env
           echo "export V=$J+9-$CI" >> .env
+          source .env
           wget https://github.com/graalvm/labs-openjdk-15/releases/download/$CI/labsjdk-ce-$V-linux-amd64.tar.gz
           tar -xf labsjdk-ce-$V-linux-amd64.tar.gz
           echo "export GRAALVM_COMMIT=$(curl --silent https://api.github.com/repos/oracle/graal/commits/master | jq .sha | xargs)" >> .env
