@@ -28,14 +28,19 @@ jobs:
           echo "export GRAALVM_VERSION=21.0.0" > .env
           git add .env
           export JAVA_VERSION=15.0.1
-          echo "export JVMCI=jvmci-21.0-b03" >> .env && source .env
-          echo "export JDK_VERSION=$JAVA_VERSION+9-$JVMCI" >> .env && source .env     
+          # Attach -debug to JVMCI if you want a debug build
+          echo "export JVMCI=jvmci-21.0-b04-debug" >> .env && source .env
+          echo "export JDK_PATCHES=+9" >> .env && source .env
+          echo "export JDK_VERSION=$JAVA_VERSION$JDK_PATCHES-$JVMCI" >> .env && source .env     
+          echo "export JAVA_FOLDER_NAME=labsjdk-ce-$JDK_VERSION" >> .env && source .env 
           echo "export JAVA_HOME=$PWD/labsjdk-ce-$JDK_VERSION" >> .env && source .env 
           echo "export PATH=$PWD/mx:$JAVA_HOME/bin:$PATH" >> .env && source .env
           echo "export WORKING_DIR=$PWD" >> .env && source .env
+          # /labsjdk-ce-15.0.1-jvmci-21.0-b04-debug
+          # https://github.com/graalvm/labs-openjdk-15/releases/download/jvmci-21.0-b04/labsjdk-ce-15.0.1+9-jvmci-21.0-b04-debug-linux-amd64.tar.gz
           wget https://github.com/graalvm/labs-openjdk-15/releases/download/$JVMCI/labsjdk-ce-$JDK_VERSION-linux-amd64.tar.gz
-          tar -xf labsjdk-ce-$JDK_VERSION-linux-amd64.tar.gz
-          mv labsjdk-ce-$JAVA_VERSION-$JVMCI labsjdk-ce-$JDK_VERSION
+          tar -xf $JAVA_FOLDER_NAME-linux-amd64.tar.gz
+          mv labsjdk-ce-$JAVA_VERSION-$JVMCI $JAVA_FOLDER_NAME
           echo "export GRAALVM_COMMIT=$(curl --silent -L https://api.github.com/repos/oracle/graal/commits/master | jq .sha | xargs)" >> .env && source .env
           echo "export GRAALJS_COMMIT=$(curl --silent -L https://api.github.com/repos/oracle/graaljs/commits/master | jq .sha | xargs)" >> .env && source .env
           echo GRAALVM-$(git rev-parse --short $GRAALVM_COMMIT)-GRAALJS-$(git rev-parse --short $GRAALJS_COMMIT) > COMMITS
