@@ -104,8 +104,8 @@ jobs:
         run: |
           export COMMIT_HASH=$(cat COMMITS)
           find mx/mxbuild > release
-          find graaljs/graal-nodejs/mxbuild >> release
-          find graaljs/graal-js/mxbuild >> release
+          #find graaljs/graal-nodejs/mxbuild >> release
+          #find graaljs/graal-js/mxbuild >> release
           find graal/sdk/mxbuild >> release
           find graal/vm/mxbuild >> release
           find graal/compiler/mxbuild >> release
