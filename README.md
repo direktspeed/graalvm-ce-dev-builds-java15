@@ -1,6 +1,9 @@
 # graalvm-stack
 Custom GraalVM Distribution for use in Direktspeed Projects
 
+## Update 15.04.2021 
+https://github.com/graalvm/graalvm-ce-dev-builds/releases now has a java16 build!
+
 
 ## Installation
 i think in lib/node_modules/bin should be nothing but who knows
